@@ -86,9 +86,12 @@ concrete_model <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast Fur
 # Regression coefficents
 concrete_model
 
-# Evaluate model perfomance using all the features (expecting that all features have some effect on compressive strength,
-# the resulting model may not be useful)
+# Evaluate model perfomance using all the features
 summary(concrete_model)
+
+# Plots of model generated
+par(mfrow=c(2,2))
+plot(concrete_model)
 
 
 
