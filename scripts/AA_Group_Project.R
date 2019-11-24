@@ -79,15 +79,16 @@ pairs.panels(df_concrete[c("Cement",
                            "Concrete Comp. Strength")])
 
 # create a model on the concrete data using all features
-concrete_model <- lm(df_concrete$"Concrete Comp. Strength" ~ ., data = df_concrete)
+concrete_model <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast Furnace Slag` + 
+                        `Fly Ash` + Water + Superplasticizer + `Coarse Aggregate` + 
+                        `Fine Aggregate` + Age, data = df_concrete)
 
 # Regression coefficents
 concrete_model
 
-# Evaluate model perfomance using all the features (expecting that all features have some effect on compressive strength
+# Evaluate model perfomance using all the features (expecting that all features have some effect on compressive strength,
 # the resulting model may not be useful)
 summary(concrete_model)
 
-# Now, show the effect of combined variables interaction with the compressive strength of concrete
 
 
