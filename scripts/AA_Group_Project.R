@@ -93,5 +93,23 @@ summary(concrete_model)
 par(mfrow=c(2,2))
 plot(concrete_model)
 
+# Confidence intervals
+confint(concrete_model)
 
+# Use stepwise regression to check if model can be improved
+step(concrete_model)
 
+# Adding interaction term to generate new model (testing for interaction between cement and age)
+concrete_model_CA <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast Furnace Slag` + 
+                       `Fly Ash` + Water + Superplasticizer + `Coarse Aggregate` + 
+                       `Fine Aggregate` + Age + Cement*Age, data = df_concrete)
+
+# Evaluate model perfomance with new feature added
+summary(concrete_model_CA)
+
+# Plots of model generated
+par(mfrow=c(2,2))
+plot(concrete_model_CA)
+
+# Confidence intervals
+confint(concrete_model_CA)
