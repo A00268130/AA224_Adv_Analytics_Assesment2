@@ -1,0 +1,116 @@
+<center>
+![](data/ait.png)
+</center>
+
+---
+title: "Advanced Analytics Group Project Assignment 2"
+authors: "Gavin Byrne (A00267975), Luke Feeney (A00268130),Brendan Lynch (A00267986)"
+date: "30 November 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction{.tabset}
+texttexttexttext
+
+##Packages Required
+dplyr  
+tidyr  
+knitr  
+kableExtra 
+
+```{r warning=FALSE, message = FALSE}
+installPackage <- function(name){
+  options(repos=c(CRAN="https://ftp.heanet.ie/mirrors/cran.r-project.org/"))
+  if(name %in% rownames(installed.packages()) == FALSE) {
+    install.packages(name)
+  }
+}
+
+installPackage("dplyr")
+installPackage("tidyr")
+installPackage("knitr")
+installPackage("kableExtra")
+
+library("dplyr")
+library("tidyr")
+library("knitr")
+library("kableExtra")
+
+
+```
+
+## Data Exploration
+A description of your datasets with results of your data exploration presented in appropriate tables and plots
+
+
+##Decision Trees{.tabset}
+textexttext
+
+###Data Preparation
+
+```{r warning=FALSE}
+
+```
+
+###Predictive Model
+
+```{r warning=FALSE}
+
+```
+
+###Evaluation of model Performance
+
+```{r warning=FALSE}
+
+```
+
+
+##kNN{.tabset}
+textexttext
+
+###Data Preparation
+
+```{r warning=FALSE}
+
+```
+
+###Predictive Model
+
+```{r warning=FALSE}
+
+```
+
+###Evaluation of model Performance
+
+```{r warning=FALSE}
+
+```
+
+##Regression{.tabset}
+texttexttext
+
+###Data Preparation
+
+```{r warning=FALSE}
+
+```
+
+###Predictive Model
+
+```{r warning=FALSE}
+
+```
+
+###Evaluation of model Performance
+
+```{r warning=FALSE}
+
+```
+
+
+## Discussion/Reflection
+A brief discussion/reflection section (circa 500 words) on the analyses undertaken, how tasks were divided amongst the team, any challenges met and lessons learned
