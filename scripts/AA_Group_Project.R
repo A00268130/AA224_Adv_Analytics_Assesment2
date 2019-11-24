@@ -22,6 +22,7 @@ if("knitr" %in% rownames(installed.packages()) == FALSE) {
   install.packages("knitr")
 }
 
+
 # Load libraries used in the project
 library(dplyr)
 library(tidyr)
@@ -31,6 +32,25 @@ library(knitr)
 
 # Section 1 - Data Loading, Cleaning & Exploration ###############################
 
+# Regression: Import data for regression question - concrete compressive strength
+df_concrete <- read.csv("data/Concrete_Data.csv")
+
+# Regression: Rename headers (shorten the names)
+colnames(df_concrete) <- c("Cement",
+                           "Blast Furnace Slag",
+                           "Fly Ash",
+                           "Water",
+                           "Superplasticizer",
+                           "Coarse Aggregate",
+                           "Fine Aggregate",
+                           "Age",
+                           "Concrete Comp. Strength")
+
+# Regression: Summary of data
+summary(df_concrete)
+str(df_concrete)
+head(df_concrete)
+
 
 # Section 2 - Decision Trees ###############################
 
@@ -39,3 +59,9 @@ library(knitr)
 
 
 # Section 4 - Regression ###############################
+
+# Investigating the dependant variable
+hist(df_concrete$"Concrete Comp. Strength")
+
+# Creating a scatterplot matrix to investigate the relationships between the features
+
