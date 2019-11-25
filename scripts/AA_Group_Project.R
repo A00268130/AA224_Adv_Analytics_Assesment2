@@ -34,6 +34,7 @@ library(knitr)
 library(psych)
 
 
+
 # Section 1 - Data Loading, Cleaning & Exploration ###############################
 
 # Regression: Import data for regression question - concrete compressive strength
@@ -65,7 +66,7 @@ head(df_concrete)
 # Section 4 - Regression ###############################
 
 # Investigating the dependant variable
-hist(df_concrete$"Concrete Comp. Strength")
+hist(df_concrete$"Concrete Comp. Strength", main='Histogram of Concrete Compressive Strength', xlab='Concrete Compressive Strength')
 
 # Creating a scatterplot matrix to investigate the relationships between the features
 pairs.panels(df_concrete[c("Cement",

@@ -34,18 +34,58 @@ installPackage("dplyr")
 installPackage("tidyr")
 installPackage("knitr")
 installPackage("kableExtra")
+installPackage("psych")
+
 
 library("dplyr")
 library("tidyr")
 library("knitr")
 library("kableExtra")
+library("psych")
 
 
 ```
 
 ## Data Exploration
-A description of your datasets with results of your data exploration presented in appropriate tables and plots
 
+### Regression Dataset - Concrete Compressive Strength
+The dataset 'Concrete_Data.csv' describes variables that contribute towards different measurements of concrete compressive strength. According to the dataset source -"The concrete compressive strength is a highly nonlinear function of age and ingredients." It may be fair to assume then that age will have an affect on the compressive stregth along with one or more ingredients. These ingredients include cement, blast furnace slag, fly ash, water, superplasticizer, coarse aggregate, and fine aggregate. Concrete compressive stregnth is the output variable, while the other varaibles (such as ingredients and age) are input variables.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='hide'}
+# Regression: Import data for regression question - concrete compressive strength
+df_concrete <- read.csv("data/Concrete_Data.csv")
+```
+
+The compressive concrete dataset requires some minor changes to the headers to make them easier to read, namely removing the units.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='hide'}
+# Regression: Rename headers (shorten the names)
+colnames(df_concrete) <- c("Cement",
+                           "Blast Furnace Slag",
+                           "Fly Ash",
+                           "Water",
+                           "Superplasticizer",
+                           "Coarse Aggregate",
+                           "Fine Aggregate",
+                           "Age",
+                           "Concrete Comp. Strength")
+```
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Regression: Summary of data
+summary(df_concrete)
+```
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+df_concrete_mean <- mean(df_concrete$"Concrete Comp. Strength")
+df_concrete_median <- median(df_concrete$"Concrete Comp. Strength")
+```
+Creating a histogram of the dependant variable (compressive strength) and by investigating the mean ``r df_concrete_mean`` and median ``r df_concrete_median``  (which are similar to each other) we can see that the data appears to be normally distributed.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Investigating the dependant variable
+hist(df_concrete$"Concrete Comp. Strength", main='Histogram of Concrete Compressive Strength', xlab='Concrete Compressive Strength')
+```
 
 ##Decision Trees{.tabset}
 textexttext
