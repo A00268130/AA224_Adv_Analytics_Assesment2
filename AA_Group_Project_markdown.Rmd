@@ -13,7 +13,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Introduction{.tabset}
+# 1. Introduction{.tabset}
 texttexttexttext
 
 ##Packages Required
@@ -46,9 +46,10 @@ library("psych")
 
 ```
 
-## Data Exploration
+## 2. Data Exploration
 
-### Regression Dataset - Concrete Compressive Strength
+### 2.1 Regression- Concrete Compressive Strength
+#### 2.1.1  Summary
 The dataset 'Concrete_Data.csv' describes variables that contribute towards different measurements of concrete compressive strength. According to the dataset source -"The concrete compressive strength is a highly nonlinear function of age and ingredients." It may be fair to assume then that age will have an affect on the compressive stregth along with one or more ingredients. These ingredients include cement, blast furnace slag, fly ash, water, superplasticizer, coarse aggregate, and fine aggregate. Concrete compressive stregnth is the output variable, while the other varaibles (such as ingredients and age) are input variables.
 
 ```{r,message=FALSE, warning=FALSE, echo=TRUE, results='hide'}
@@ -76,6 +77,8 @@ colnames(df_concrete) <- c("Cement",
 summary(df_concrete)
 ```
 
+#### 2.1.2 Exploring the dependant variable
+
 ```{r,message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 df_concrete_mean <- mean(df_concrete$"Concrete Comp. Strength")
 df_concrete_median <- median(df_concrete$"Concrete Comp. Strength")
@@ -87,7 +90,30 @@ Creating a histogram of the dependant variable (compressive strength) and by inv
 hist(df_concrete$"Concrete Comp. Strength", main='Histogram of Concrete Compressive Strength', xlab='Concrete Compressive Strength')
 ```
 
-##Decision Trees{.tabset}
+#### 2.1.3 Investigating the relationships between the features
+
+Using the 'psych' libarary we can create a scatterplot matrix to compare the relationships of all the features using pair.panels.
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Creating a scatterplot matrix to investigate the relationships between the features
+pairs.panels(df_concrete[c("Cement",
+                           "Blast Furnace Slag",
+                           "Fly Ash",
+                           "Water",
+                           "Superplasticizer",
+                           "Coarse Aggregate",
+                           "Fine Aggregate",
+                           "Age",
+                           "Concrete Comp. Strength")])
+```
+
+The resulting chart above shows that for cement has a stronger relationship than the other feaures to the concrete compressive strength. We can see this by the increasing sloping line and the higher correlation value between cement and comp. strength. Superplasticizer and age appears to also have a strong relationship with compressive strength.
+
+### 2.2 Decision Trees
+
+### 2.2 kNN
+
+
+## 3. Decision Trees{.tabset}
 textexttext
 
 ###Data Preparation
@@ -109,7 +135,7 @@ textexttext
 ```
 
 
-##kNN{.tabset}
+## 4. kNN{.tabset}
 textexttext
 
 ###Data Preparation
@@ -130,20 +156,17 @@ textexttext
 
 ```
 
-##Regression{.tabset}
+## 5. Regression{.tabset}
 texttexttext
 
 ###Data Preparation
 
-```{r warning=FALSE}
-
-```
+As the data was already clean, no furhter work was requied (other than the renaming of variables previously done).
 
 ###Predictive Model
 
-```{r warning=FALSE}
 
-```
+
 
 ###Evaluation of model Performance
 
@@ -152,5 +175,5 @@ texttexttext
 ```
 
 
-## Discussion/Reflection
+## 6. Discussion/Reflection
 A brief discussion/reflection section (circa 500 words) on the analyses undertaken, how tasks were divided amongst the team, any challenges met and lessons learned

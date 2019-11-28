@@ -79,6 +79,9 @@ pairs.panels(df_concrete[c("Cement",
                            "Age",
                            "Concrete Comp. Strength")])
 
+# Use stepwise regression to check if any variables can be possibly removed from the model
+step(concrete_model)
+
 # create a model on the concrete data using all features
 concrete_model <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast Furnace Slag` + 
                         `Fly Ash` + Water + Superplasticizer + `Coarse Aggregate` + 
@@ -96,9 +99,6 @@ plot(concrete_model)
 
 # Confidence intervals
 confint(concrete_model)
-
-# Use stepwise regression to check if model can be improved
-step(concrete_model)
 
 # Adding interaction term to generate new model (testing for interaction between cement and age)
 concrete_model_CA <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast Furnace Slag` + 
