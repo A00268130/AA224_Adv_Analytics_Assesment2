@@ -79,13 +79,14 @@ pairs.panels(df_concrete[c("Cement",
                            "Age",
                            "Concrete Comp. Strength")])
 
-# Use stepwise regression to check if any variables can be possibly removed from the model
-step(concrete_model)
 
 # create a model on the concrete data using all features
 concrete_model <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast Furnace Slag` + 
                         `Fly Ash` + Water + Superplasticizer + `Coarse Aggregate` + 
                         `Fine Aggregate` + Age, data = df_concrete)
+
+# Use stepwise regression to check if any variables can be possibly removed from the model
+step(concrete_model)
 
 # Regression coefficents
 concrete_model
