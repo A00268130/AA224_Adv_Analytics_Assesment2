@@ -36,7 +36,33 @@ if("gmodels" %in% rownames(installed.packages()) == FALSE) {
 if("psych" %in% rownames(installed.packages()) == FALSE) {
   install.packages("psych", dependencies = T)
 }
+if("rpart" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("rpart")
+}
+if("rpart.plot" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("rpart.plot")
+}
+if("randomForest" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("randomForest")
+}
+if("gbm" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("gbm")
+}
+if("caret" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("caret")
+}
+if("MASS" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("MASS")
+}
+if("ISLR" %in% rownames(installed.packages()) == FALSE) {
+  install.packages("ISLR")
+}
+
 # Load libraries used in the project
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(gbm)
 library(dplyr)
 library(tidyr)
 library(kableExtra)
@@ -47,6 +73,8 @@ library(fastDummies)
 library(class)
 library(gmodels)
 library(caret)
+library(MASS)
+library(ISLR)
 library(psych)
 
 # Section 1 - Data Loading, Cleaning & Exploration ###############################
@@ -81,8 +109,167 @@ summary(df_concrete)
 str(df_concrete)
 head(df_concrete)
 
-# Section 2 - Decision Trees ###############################
 
+# Decision Tree data
+wine_df = read.csv("data/wine_data.csv")
+colnames(wine_df) <-  c("class"
+                        ,"alcohol"
+                        ,"malic_acid"
+                        ,"ash"
+                        ,"alcalinity"
+                        ,"magnesium"
+                        ,"phenols"
+                        ,"flavanoids"
+                        ,"non_flav_phenols"
+                        ,"proanthocyanins"
+                        ,"colour"
+                        ,"hue"
+                        ,"dilute"
+                        ,"proline")
+
+wine_df$class <- as.character(wine_df$class)
+wine_df$class <- as.factor(wine_df$class)
+
+str(wine_df)
+head(wine_df)
+summary(wine_df)
+table(wine_df$class)
+#examining class breakdown percentages
+round(prop.table(table(wine_df$class)) * 100, digits = 1)
+
+# Check for N/A's and blanks
+# count NAs
+sapply(wine_df, function(x){sum(is.na(x))}) 
+# count blank entries
+sapply(wine_df, function(x){sum(x=='', na.rm=T)})
+
+# No need to handle blanks or N/A's as none found in the dataset
+
+
+# Section 2 - Decision Trees ###############################
+# function to calc the accuracy of models
+calc_accuracy = function(actual, predicted) {
+  mean(actual == predicted)
+}
+
+# Split into training and test at 70/30 ratio
+set.seed(100)
+train <- sample(nrow(wine_df), 0.7*nrow(wine_df), replace = FALSE)
+wine_trn <- wine_df[train,]
+wine_tst <- wine_df[-train,]
+# Summary of training set
+summary(wine_trn)
+# Summary of test set
+summary(wine_tst)
+
+### Tree Model ##################################################################
+
+# Create the model
+wine_tree = rpart(class ~ ., data = wine_trn)
+# Plot the tree
+rpart.plot(wine_tree)
+
+# Predict on test set
+wine_tree_tst_pred = predict(wine_tree, wine_tst, type = "class")
+# Predicted vs Actual
+table(predicted = wine_tree_tst_pred, actual = wine_tst$class)
+
+# Use function to work out the accuracy
+(wine_tst_acc = calc_accuracy(predicted = wine_tree_tst_pred,
+                              actual = wine_tst$class))
+
+### Bagging Model ###############################################################
+
+# Create the model
+wine_bag = randomForest(class ~ ., data = wine_trn, mtry = 10, 
+                        importance = TRUE, ntrees = 500)
+
+# Error rate and confusion matrix
+wine_bag
+# Plot error rate by number of trees
+plot(wine_bag)
+
+# Predict on test set
+wine_bag_tst_pred = predict(wine_bag, newdata = wine_tst)
+# Predicted vs Actual
+table(predicted = wine_bag_tst_pred, actual = wine_tst$class)
+
+# Use function to work out the accuracy
+(wine_bag_tst_acc = calc_accuracy(predicted = wine_bag_tst_pred,
+                                  actual = wine_tst$class))
+
+# Random Forest Model ###########################################################
+
+# Create the model
+wine_forest = randomForest(class ~ ., data = wine_trn, mtry = 3,
+                           importance = TRUE, ntrees = 500)
+
+# Error rate and confusion matrix
+wine_forest
+# Plot error rate by number of trees
+plot(wine_forest)
+
+# Predict on test set
+wine_forest_tst_perd = predict(wine_forest, newdata = wine_tst)
+# Predicted vs Actual
+table(predicted = wine_forest_tst_perd, actual = wine_tst$class)
+
+# Use function to work out the accuracy
+(wine_forest_tst_acc = calc_accuracy(predicted = wine_forest_tst_perd,
+                                     actual = wine_tst$class))
+
+# Comparison ####################################################################
+
+# Display an accuracy comparison table
+(vine_acc = data.frame(
+  Model = c("Single Tree", "Bagging",  "Random Forest"),
+  TestAccuracy = c(wine_tst_acc, wine_bag_tst_acc, wine_forest_tst_acc)
+)
+)
+
+# Fine Tuning ###################################################################
+
+# Set the train control method
+oob = trainControl(method = "oob")
+
+# Build grid of mtry needed to find most accurate number of predictors used
+rf_grid =  expand.grid(mtry = 1:13)
+
+# Tune RF using oob and fr_grid
+set.seed(1000)
+wine_rf_tune = train(class~ ., data = wine_trn,
+                     method = "rf",
+                     trControl = oob,
+                     verbose = FALSE,
+                     tuneGrid = rf_grid)
+
+# View accuracy table and optimal mtry value
+wine_rf_tune
+# Plot accuracy by mtry value
+plot(wine_rf_tune)
+
+# Use function to find highest accuracy
+calc_accuracy(predict(wine_rf_tune, wine_tst), wine_tst$class)
+# Show optimal mtry
+wine_rf_tune$bestTune
+
+# Tuned Random Forest ##########################################################
+wine_forest_tuned = randomForest(class ~ ., data = wine_trn, mtry = 2,
+                                 importance = TRUE, ntrees = 500)
+
+tuned_wine_forest_tst_perd = predict(wine_forest_tuned, newdata = wine_tst)
+table(predicted = tuned_wine_forest_tst_perd, actual = wine_tst$class)
+
+(tuned_wine_forest_tst_acc = calc_accuracy(predicted = tuned_wine_forest_tst_perd,
+                                           actual = wine_tst$class))
+
+# Compare all ##################################################################
+(vine_acc = data.frame(
+  Model = c("Single Tree", "Bagging",  "Random Forest", "Random Forest Tuned"),
+  TestAccuracy = c(wine_tst_acc, wine_bag_tst_acc, wine_forest_tst_acc,
+                   tuned_wine_forest_tst_acc)
+)
+)
 
 # Section 3 - kNN ###############################
 # split into training and test data
@@ -234,3 +421,4 @@ plot(concrete_model_CA)
 
 # Confidence intervals
 confint(concrete_model_CA)
+

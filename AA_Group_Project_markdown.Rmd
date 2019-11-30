@@ -38,6 +38,18 @@ installPackage <- function(name){
   }
 }
 
+# function to calc the accuracy of models
+calc_accuracy = function(actual, predicted) {
+  mean(actual == predicted)
+}
+
+installPackage("rpart")
+installPackage("rpart.plot")
+installPackage("randomForest")
+installPackage("gbm")
+installPackage("caret")
+installPackage("MASS")
+installPackage("ISLR")
 installPackage("dplyr")
 installPackage("tidyr")
 installPackage("knitr")
@@ -49,6 +61,13 @@ installPackage("caret")
 installPackage("psych")
 install.packages('e1071', dependencies=TRUE)
 
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(gbm)
+library(caret)
+library(MASS)
+library(ISLR)
 library("dplyr")
 library("tidyr")
 library("knitr")
@@ -59,7 +78,6 @@ library("fastDummies")
 library("class")
 library("caret")
 library("psych")
-
 ```
 
 ## 2. Data Exploration {.tabset}
@@ -89,7 +107,7 @@ kable(round(prop.table(table(data_knn$class)) * 100, digits = 1)) %>%
 ```
 
 ### 2.2 Dataset 2 - Regression
-#### 2.1.1  Summary
+#### 2.2.1  Summary
 The dataset 'Concrete_Data.csv' describes variables that contribute towards different measurements of concrete compressive strength. According to the dataset source -"The concrete compressive strength is a highly non-linear function of age and ingredients." It may be fair to assume then that age will have an affect on the compressive strength along with one or more ingredients. These ingredients include cement, blast furnace slag, fly ash, water, superplasticizer, coarse aggregate, and fine aggregate. Concrete compressive strength is the output variable, while the other variables (such as ingredients and age) are input variables.
 
 ```{r,message=FALSE, warning=FALSE, echo=TRUE, results='hide'}
@@ -117,7 +135,7 @@ colnames(df_concrete) <- c("Cement",
 summary(df_concrete)
 ```
 
-#### 2.1.2 Exploring the dependant variable
+#### 2.2.2 Exploring the dependant variable
 
 ```{r,message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 df_concrete_mean <- mean(df_concrete$"Concrete Comp. Strength")
@@ -130,7 +148,7 @@ Creating a histogram of the dependant variable (compressive strength) and by inv
 hist(df_concrete$"Concrete Comp. Strength", main='Histogram of Concrete Compressive Strength', xlab='Concrete Compressive Strength')
 ```
 
-#### 2.1.3 Investigating the relationships between the features
+#### 2.2.3 Investigating the relationships between the features
 
 Using the 'psych' library we can create a scatterplot matrix to compare the relationships of all the features using pair.panels.
 ```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
@@ -148,28 +166,67 @@ pairs.panels(df_concrete[c("Cement",
 
 The resulting chart above shows that for cement has a stronger relationship than the other features to the concrete compressive strength. We can see this by the increasing sloping line and the higher correlation value between cement and comp. strength. Superplasticizer and age appears to also have a strong relationship with compressive strength. Age is also interesting, in that it appear to increase quite quickly and then level off in terms of its relationship with concrete compressive strength.
 
-## 2.3 Decision Trees{.tabset}
-textexttext
 
-### 2.3.1 Data Preparation
+### 2.3 Decision Trees Dataset - Wine Grades
 
-```{r warning=FALSE}
+The dataset "wine_data.csv" was taken from https://archive.ics.uci.edu/ml/datasets/Wine.
 
+The data is the result of a chemical analysis of wines grown in the same region in Italy but derived from three different cultivars. These cultivars are treated as the wines class/grade for 
+the purposes of this analysis.
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+# Import data for decision trees.
+wine_df = read.csv("data/wine_data.csv")
 ```
 
-### 2.3.2 Predictive Model
+As the data did not come with header names these were added post import. Also the wine "class"
+was converted from numeric to a factor.
 
-```{r warning=FALSE}
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+# Trees: Name headers and convert to factor
+colnames(wine_df) <-  c("class"
+                        ,"alcohol"
+                        ,"malic_acid"
+                        ,"ash"
+                        ,"alcalinity"
+                        ,"magnesium"
+                        ,"phenols"
+                        ,"flavanoids"
+                        ,"non_flav_phenols"
+                        ,"proanthocyanins"
+                        ,"colour"
+                        ,"hue"
+                        ,"dilute"
+                        ,"proline")
 
+wine_df$class <- as.character(wine_df$class)
+wine_df$class <- as.factor(wine_df$class)
 ```
 
-### 2.3.3 Evaluation of model Performance
+Summary of wine dataframe:
 
-```{r warning=FALSE}
-
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Trees: Summary of data
+summary(wine_df)
 ```
 
+# Check for N/A's and blanks #####################################################
 
+No Need to handle N/A's or blanks as none were found.
+
+N/A's:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Trees: count NAs
+sapply(wine_df, function(x){sum(is.na(x))}) 
+```
+
+Blanks:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Trees: count blank entries
+sapply(wine_df, function(x){sum(x=='', na.rm=T)})
+```
 ## 3. kNN{.tabset}
 The kNN model was applied to breast cancer data from the UCI machine learning repository, with the class being predicted the recurrence or non-recurrence of breast cancer.
 
@@ -399,6 +456,247 @@ plot(concrete_model_CA)
 ```
 
 
+
+
+
+
+# Split to train and test  ######################################################
+
+We're ready to split our data into train and test data sets.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='hide'}
+# Split into training and test at 70/30 ratio
+set.seed(100)
+train <- sample(nrow(wine_df), 0.7*nrow(wine_df), replace = FALSE)
+wine_trn <- wine_df[train,]
+wine_tst <- wine_df[-train,]
+```
+
+Training summary:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Summary of training set
+summary(wine_trn)
+```
+
+Test summary:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Summary of test set
+summary(wine_tst)
+```
+
+### Tree Model ##################################################################
+
+Our first model will be a single decision tree. Here we create the tree, train on 
+our training set and plot it:
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Create the model
+wine_tree = rpart(class ~ ., data = wine_trn)
+# Plot the tree
+rpart.plot(wine_tree)
+```
+
+We then predict on our test set and output an actual vs predicted table:
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Predict on test set
+wine_tree_tst_pred = predict(wine_tree, wine_tst, type = "class")
+# Predicted vs Actual
+table(predicted = wine_tree_tst_pred, actual = wine_tst$class)
+```
+
+The accuracy of the model is:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Use function to work out the accuracy
+(wine_tst_acc = calc_accuracy(predicted = wine_tree_tst_pred,
+                              actual = wine_tst$class))
+```
+
+### Bagging Model ###############################################################
+
+Our next model is bagging. Similar to before we create the tree, train on 
+our training set but this time output the error rate and confusion matrix.
+
+The reason for this is that bagging produces many trees and it would be
+pointless to plot just one of them.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Create the model
+wine_bag = randomForest(class ~ ., data = wine_trn, mtry = 10, 
+                        importance = TRUE, ntrees = 500)
+
+# Error rate and confusion matrix
+wine_bag
+```
+
+We can plot the error rate by number of trees created:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Plot error rate by number of trees
+plot(wine_bag)
+```
+
+We then predict on our test set and output an actual vs predicted table:
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Predict on test set
+wine_bag_tst_pred = predict(wine_bag, newdata = wine_tst)
+# Predicted vs Actual
+table(predicted = wine_bag_tst_pred, actual = wine_tst$class)
+```
+
+The models accuracy is:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Use function to work out the accuracy
+(wine_bag_tst_acc = calc_accuracy(predicted = wine_bag_tst_pred,
+                                  actual = wine_tst$class))
+```
+
+# Random Forest Model ###########################################################
+
+Our final model is Random Forest.
+
+Again, we create, train and output the the error rate and confusion matrix.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Create the model
+wine_forest = randomForest(class ~ ., data = wine_trn, mtry = 3,
+                           importance = TRUE, ntrees = 500)
+
+# Error rate and confusion matrix
+wine_forest
+```
+
+Plot the error rate by number of trees created:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Plot error rate by number of trees
+plot(wine_forest)
+```
+
+Predict on our test set and output an actual vs predicted table:
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+# Predict on test set
+wine_forest_tst_perd = predict(wine_forest, newdata = wine_tst)
+# Predicted vs Actual
+table(predicted = wine_forest_tst_perd, actual = wine_tst$class)
+```
+
+Random Forests accuracy:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Use function to work out the accuracy
+(wine_forest_tst_acc = calc_accuracy(predicted = wine_forest_tst_perd,
+                                     actual = wine_tst$class))
+```
+
+# Comparison ####################################################################
+
+To compare the three models a dataframe is made up from their accuracy outputs and 
+printed.
+
+You can see that from an accuracy standpoint it's: 
+Random Forest > Bagging > Single Tree
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Display an accuracy comparison table
+(vine_acc = data.frame(
+  Model = c("Single Tree", "Bagging",  "Random Forest"),
+  TestAccuracy = c(wine_tst_acc, wine_bag_tst_acc, wine_forest_tst_acc)
+)
+)
+```
+
+# Fine Tuning ###################################################################
+
+We can fine tune each of these models if we choose to. As an example I have tuned 
+the Random forest model.
+
+As a default the mtry is set to 3. The block of code below will try every possible
+mtry value and log the accuracy of each.
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='hide'}
+# Set the train control method
+oob = trainControl(method = "oob")
+
+# Build grid of mtry needed to find most accurate number of predictors used
+rf_grid =  expand.grid(mtry = 1:13)
+
+# Tune RF using oob and fr_grid
+set.seed(1000)
+wine_rf_tune = train(class~ ., data = wine_trn,
+                     method = "rf",
+                     trControl = oob,
+                     verbose = FALSE,
+                     tuneGrid = rf_grid)
+```
+
+We can then view this log and see the optimal value for mtry.
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# View accuracy table and optimal mtry value
+wine_rf_tune
+```
+
+A plot of accuracy by mtry value used:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Plot accuracy by mtry value
+plot(wine_rf_tune)
+```
+
+The best accuracy achieved:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Use function to find highest accuracy
+calc_accuracy(predict(wine_rf_tune, wine_tst), wine_tst$class)
+```
+
+This is achieved by using an mtry value of:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+# Show optimal mtry
+wine_rf_tune$bestTune
+```
+
+# Tuned Random Forest ##########################################################
+
+Using this knowledge a new Random Forest model is created and predictions are run:
+
+```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
+wine_forest_tuned = randomForest(class ~ ., data = wine_trn, mtry = 2,
+                                 importance = TRUE, ntrees = 500)
+
+tuned_wine_forest_tst_perd = predict(wine_forest_tuned, newdata = wine_tst)
+table(predicted = tuned_wine_forest_tst_perd, actual = wine_tst$class)
+```
+
+The accuracy of this new model matches the best from our fine tuning.
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+(tuned_wine_forest_tst_acc = calc_accuracy(predicted = tuned_wine_forest_tst_perd,
+                                           actual = wine_tst$class))
+```
+
+# Compare all ##################################################################
+
+Finally, the tuned model is added to the comparrison table:
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, results='show'}
+(vine_acc = data.frame(
+  Model = c("Single Tree", "Bagging",  "Random Forest", "Random Forest Tuned"),
+  TestAccuracy = c(wine_tst_acc, wine_bag_tst_acc, wine_forest_tst_acc,
+                   tuned_wine_forest_tst_acc)
+)
+)
+```
+
+
 ## Discussion/Reflection
 The work was split up amongst the team where individually we would work on creating the models and then once complete, review the work done and merge the script changes in github. Gavin Byrne carried out the decision tree analysis, Brendan Lynch the kNN analysis and Luke Feeney the regression analysis. Finally we worked together to create the final markdown file.
 
@@ -406,3 +704,14 @@ For the kNN models, the dataset used was challenging in terms of being completel
 
 For the regression problem, the dataset was interesting in terms of some of the background research into concrete compressive strength. As the data required little to no cleaning, not much can be said about the state of the data other than that it was very easy to work with.
 Creating the model brought up some interesting results, namely that while cement would clearly be a large factor in creating concrete, that age plays a significant part in improving compressive strength. Adding in age and cement as an interaction feature, did not have as strong as an effect as it seemingly would have. It did improve the adjusted R squared value, but we were expecting that it would have had a better effect on the performance of the model.
+
+Having been assigned Decision Trees I was unsure whether analysis using a single tree would meet the brief. Due to this concern
+I chose to analyse my dataset using three models and then compare
+& contrast.
+
+From running a single tree, a bagged RF and a random forest I have
+learned about the strenghts and weaknesses of each. One important
+lesson however was to ensure your chosen model fits the dataset you
+are working with.
+I'm relatively certain my wine dataset is not a good match for
+classification by decision trees.
