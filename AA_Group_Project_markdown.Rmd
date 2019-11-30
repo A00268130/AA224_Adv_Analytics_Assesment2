@@ -80,7 +80,7 @@ library("caret")
 library("psych")
 ```
 
-## 2. Data Exploration {.tabset}
+# 2. Data Exploration {.tabset}
 A description of the datasets with results of the data exploration presented in appropriate tables and plots
 
 ### 2.1 Dataset 1 - Decision Trees and kNN classification
@@ -167,7 +167,7 @@ pairs.panels(df_concrete[c("Cement",
 The resulting chart above shows that for cement has a stronger relationship than the other features to the concrete compressive strength. We can see this by the increasing sloping line and the higher correlation value between cement and comp. strength. Superplasticizer and age appears to also have a strong relationship with compressive strength. Age is also interesting, in that it appear to increase quite quickly and then level off in terms of its relationship with concrete compressive strength.
 
 
-### 2.3 Decision Trees Dataset - Wine Grades
+#### 2.3 Decision Trees Dataset - Wine Grades
 
 The dataset "wine_data.csv" was taken from https://archive.ics.uci.edu/ml/datasets/Wine.
 
@@ -227,7 +227,7 @@ Blanks:
 # Trees: count blank entries
 sapply(wine_df, function(x){sum(x=='', na.rm=T)})
 ```
-## 3. kNN{.tabset}
+# 3. kNN {.tabset}
 The kNN model was applied to breast cancer data from the UCI machine learning repository, with the class being predicted the recurrence or non-recurrence of breast cancer.
 
 ### 3.1 Data Preparation
@@ -320,7 +320,7 @@ summary(knn_pred_m2)
 ```
 
 
-### 3.3 Evaluation of model Performance{.tabset}
+### 3.3 Evaluation of model Performance
 In order to optimise the models and compare performance, it was necessary to test different values of k. For each model, the kNN algorithm was run multiple times to create a picture of the solution space
 
 ####Model 1
@@ -392,14 +392,14 @@ As can be seen from the model evaluation, model 2 where the ordinality of certai
 Further the p values for the second model indicated a more statistically robust result, although it must be noted that neither reached standard significance thresholds. The p value for the best k of M2 was `r unique(m2_results[m2_results$Accuracy==max(m2_results$Accuracy),3])` while the corresponding value for M1 was `r unique(m1_results[m1_results$Accuracy==max(m1_results$Accuracy),3])`.  
 A final note to say that with non-recurrence of events being at 70% in the data, the predictive value of kNN for this task does not appear to be especially useful. This could be due to there not being a clear boundary between the classes or that the input data is not sufficient to allow for better prediction.
 
-## 4. Regression{.tabset}
+# 4. Regression {.tabset}
 As mentioned previously, the concrete compressive strength in the dataset is the dependant variable, and we are trying to use the features to model this output variable. We will creat a model using all the features(as it is hypotheized that they are all important) and then use techniques such as stepwise selection to see what can be changed in the model to make it more effective. Finally, an anlyisis will be done on the summary of the final model to asses performance.
 
-### 5.1 Data Preparation
+### 4.1 Data Preparation
 
 As the data was already clean, no further work was required (other than the renaming of variables previously done).
 
-### 5.2 Predictive Model
+### 4.2 Predictive Model
 
 The intial pass at the model used all the features.
 
@@ -427,7 +427,7 @@ concrete_model_CA <- lm(df_concrete$"Concrete Comp. Strength" ~ Cement + `Blast 
                        `Fine Aggregate` + Age + Cement*Age, data = df_concrete)
 ```
 
-### 5.3 Evaluation of model Performance
+### 4.3 Evaluation of model Performance
 
 The summary command shows us the performance of our first model (all the features used).
 ```{r,message=FALSE, warning=FALSE, echo=TRUE, results='show'}
@@ -455,12 +455,9 @@ par(mfrow=c(2,2))
 plot(concrete_model_CA)
 ```
 
+# 5. Decision Tree {.tabset}
 
-
-
-
-
-# Split to train and test  ######################################################
+### Split to train and test  ######################################################
 
 We're ready to split our data into train and test data sets.
 
@@ -556,7 +553,7 @@ The models accuracy is:
                                   actual = wine_tst$class))
 ```
 
-# Random Forest Model ###########################################################
+### Random Forest Model ###########################################################
 
 Our final model is Random Forest.
 
@@ -595,7 +592,7 @@ Random Forests accuracy:
                                      actual = wine_tst$class))
 ```
 
-# Comparison ####################################################################
+### Comparison ####################################################################
 
 To compare the three models a dataframe is made up from their accuracy outputs and 
 printed.
@@ -612,7 +609,7 @@ Random Forest > Bagging > Single Tree
 )
 ```
 
-# Fine Tuning ###################################################################
+### Fine Tuning ###################################################################
 
 We can fine tune each of these models if we choose to. As an example I have tuned 
 the Random forest model.
@@ -664,7 +661,7 @@ This is achieved by using an mtry value of:
 wine_rf_tune$bestTune
 ```
 
-# Tuned Random Forest ##########################################################
+### Tuned Random Forest ##########################################################
 
 Using this knowledge a new Random Forest model is created and predictions are run:
 
@@ -683,7 +680,7 @@ The accuracy of this new model matches the best from our fine tuning.
                                            actual = wine_tst$class))
 ```
 
-# Compare all ##################################################################
+### Compare all ##################################################################
 
 Finally, the tuned model is added to the comparrison table:
 
@@ -697,7 +694,7 @@ Finally, the tuned model is added to the comparrison table:
 ```
 
 
-## Discussion/Reflection
+# 6. Discussion/Reflection{.tabset}
 The work was split up amongst the team where individually we would work on creating the models and then once complete, review the work done and merge the script changes in github. Gavin Byrne carried out the decision tree analysis, Brendan Lynch the kNN analysis and Luke Feeney the regression analysis. Finally we worked together to create the final markdown file.
 
 For the kNN models, the dataset used was challenging in terms of being completely categorical and thus requiring a  lot of preprocessing. The decision whether to treat certain variables as nominal or ordinal appears to have allowed some improvement in model performance. However overall, the kNN method did not seem to be most suited for predictive accuracy and in a fuller analysis, comparison with other classifiers would have been carried out. 
@@ -705,13 +702,6 @@ For the kNN models, the dataset used was challenging in terms of being completel
 For the regression problem, the dataset was interesting in terms of some of the background research into concrete compressive strength. As the data required little to no cleaning, not much can be said about the state of the data other than that it was very easy to work with.
 Creating the model brought up some interesting results, namely that while cement would clearly be a large factor in creating concrete, that age plays a significant part in improving compressive strength. Adding in age and cement as an interaction feature, did not have as strong as an effect as it seemingly would have. It did improve the adjusted R squared value, but we were expecting that it would have had a better effect on the performance of the model.
 
-Having been assigned Decision Trees I was unsure whether analysis using a single tree would meet the brief. Due to this concern
-I chose to analyse my dataset using three models and then compare
-& contrast.
+Having been assigned Decision Trees I was unsure whether analysis using a single tree would meet the brief. Due to this concern I chose to analyse my dataset using three models and then compare & contrast.
 
-From running a single tree, a bagged RF and a random forest I have
-learned about the strenghts and weaknesses of each. One important
-lesson however was to ensure your chosen model fits the dataset you
-are working with.
-I'm relatively certain my wine dataset is not a good match for
-classification by decision trees.
+From running a single tree, a bagged RF and a random forest I have learned about the strenghts and weaknesses of each. One important lesson however was to ensure your chosen model fits the dataset you are working with. I'm relatively certain my wine dataset is not a good match for classification by decision trees.
