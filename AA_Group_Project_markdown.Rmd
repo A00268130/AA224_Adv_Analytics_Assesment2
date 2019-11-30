@@ -42,21 +42,53 @@ installPackage("dplyr")
 installPackage("tidyr")
 installPackage("knitr")
 installPackage("kableExtra")
+installPackage("data.table")
+installPackage("tibble")
+installPackage("fastDummies")
+installPackage("caret")
 installPackage("psych")
-
+install.packages('e1071', dependencies=TRUE)
 
 library("dplyr")
 library("tidyr")
 library("knitr")
 library("kableExtra")
+library("data.table")
+library("tibble")
+library("fastDummies")
+library("class")
+library("caret")
 library("psych")
-
 
 ```
 
-## 2. Data Exploration
+## 2. Data Exploration {.tabset}
+A description of the datasets with results of the data exploration presented in appropriate tables and plots
 
-### 2.1 Regression- Concrete Compressive Strength
+### 2.1 Dataset 1 - Decision Trees and kNN classification
+The first dataset used for the classification tasks was a breast cancer dataset sourced from the UCI ML repository (https://archive.ics.uci.edu/ml/datasets/Breast+Cancer).  
+This dataset consists of 286 records of breast cancer data with 9 attributes and one class variable. The class variable contains two possible classes of ‘no recurrence’ and ‘recurrence’. This relates to the fact that for about 30% of patients that undergo breast cancer surgery, the illness reappears after 5 years.
+
+```{r warning=FALSE, echo=FALSE}
+data_knn = read.csv("data/breast-cancer-data.csv")
+colnames(data_knn) <-  c("class","age","menopause","tumor_size","inv_nodes","node_caps","deg_malig","breast","breast_quad","irradiat")
+```
+```{r warning=FALSE}
+str(data_knn)
+```
+Examining the data initially reveals a mixture of nominal and ordinal variables
+```{r warning=FALSE}
+head(data_knn)
+summary(data_knn)
+```
+
+Examining the class breakdown percentages shows that the majority of cases have no recurrence events. This disparity is not so significant as to be dangerously weighted to one side, however given the below the baseline for any prediction score should be 70% as the simple assumption of no recurrence would seem to yield that score.
+```{r warning=FALSE, echo=F}
+kable(round(prop.table(table(data_knn$class)) * 100, digits = 1)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F, font_size = 14)
+```
+
+### 2.2 Dataset 2 - Regression
 #### 2.1.1  Summary
 The dataset 'Concrete_Data.csv' describes variables that contribute towards different measurements of concrete compressive strength. According to the dataset source -"The concrete compressive strength is a highly non-linear function of age and ingredients." It may be fair to assume then that age will have an affect on the compressive strength along with one or more ingredients. These ingredients include cement, blast furnace slag, fly ash, water, superplasticizer, coarse aggregate, and fine aggregate. Concrete compressive strength is the output variable, while the other variables (such as ingredients and age) are input variables.
 
@@ -116,55 +148,194 @@ pairs.panels(df_concrete[c("Cement",
 
 The resulting chart above shows that for cement has a stronger relationship than the other features to the concrete compressive strength. We can see this by the increasing sloping line and the higher correlation value between cement and comp. strength. Superplasticizer and age appears to also have a strong relationship with compressive strength. Age is also interesting, in that it appear to increase quite quickly and then level off in terms of its relationship with concrete compressive strength.
 
-### 2.2 Decision Trees
-
-### 2.2 kNN
-
-
-## 3. Decision Trees{.tabset}
+## 2.3 Decision Trees{.tabset}
 textexttext
+
+### 2.3.1 Data Preparation
+
+```{r warning=FALSE}
+
+```
+
+### 2.3.2 Predictive Model
+
+```{r warning=FALSE}
+
+```
+
+### 2.3.3 Evaluation of model Performance
+
+```{r warning=FALSE}
+
+```
+
+
+## 3. kNN{.tabset}
+The kNN model was applied to breast cancer data from the UCI machine learning repository, with the class being predicted the recurrence or non-recurrence of breast cancer.
 
 ### 3.1 Data Preparation
 
+As can be seen from the structure of the dataset, all of the variables are categorical. They are all factorised with the exception of deg_malig which is now manually facorised:
+
 ```{r warning=FALSE}
+str(data_knn)
+data_knn$deg_malig = as.factor(data_knn$deg_malig)
+```
+
+Given that kNN deals in Euclidean distances, it was necessary to create dummy variables for each of the variables. For each value in a nominal variable, a binary dummy variable is created. Some of the variables could be coded as ordinal and given values like 1,2,3 etc. however  for the first model treating all as nominal was deemed the safest approach.  
+As the number of variables created was quite large (32) below is a sample of the first 2 nominal variables transformed into dummy variables. Note the n-1 approach was taken
+
+```{r warning=FALSE}
+data_knn_m1 = fastDummies::dummy_cols(data_knn,remove_most_frequent_dummy = T,ignore_na = T )
+data_knn_m1 = data_knn_m1[,-c(2:11)]
+knitr::kable(head(data_knn_m1)[,1:8]) %>%
+    kable_styling(position='left',full_width=F)
+```
+
+```{r warning=FALSE, echo=F}
+data_knn_nom_vars <- c("menopause","node_caps","breast","breast_quad","irradiat")
+data_knn_ord_vars <- colnames(data_knn)[!(colnames(data_knn) %in% c(data_knn_nom_vars,"class"))]
 
 ```
+  
+A second approach was to identify possible ordinal variables where the order might provide more information in the model to allow more accurate classification. The possible ordinal variables were defined as `r data_knn_ord_vars`  
+The newly created numeric variables then needed to be normalised to between 0 and 1.
+
+```{r warning=FALSE}
+data_knn_nom_vars <- c("menopause","node_caps","breast","breast_quad","irradiat")
+data_knn_m2 = fastDummies::dummy_cols(data_knn,remove_most_frequent_dummy = T,ignore_na = T, select_columns = data_knn_nom_vars)
+data_knn_ord_vars <- colnames(data_knn)[!(colnames(data_knn) %in% c(data_knn_nom_vars,"class"))]
+data_knn_m2$age_n <- as.numeric(data_knn_m2$age)-1
+data_knn_m2$tumor_size <- factor(data_knn_m2$tumor_size, levels = c('0-4','5-9','10-14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50-54'))
+data_knn_m2$tumor_size_n <- as.numeric(data_knn_m2$tumor_size)-1
+data_knn_m2$inv_nodes <- factor(data_knn_m2$inv_nodes, levels = c("0-2","3-5","6-8","9-11","12-14", "15-17","24-26"))
+data_knn_m2$inv_nodes_n <- as.numeric(data_knn_m2$inv_nodes)-1
+data_knn_m2$deg_malig_n <- as.numeric(data_knn_m2$deg_malig) - 1
+
+normfn <- function(inlist) {
+  inlist = inlist/max(inlist)
+  return(inlist)
+}
+data_knn_m2[,names(data_knn_m2) %in% paste0(data_knn_ord_vars,"_n")] <- lapply(data_knn_m2[,names(data_knn_m2) %in% paste0(data_knn_ord_vars,"_n")], normfn)
+data_knn_m2 = data_knn_m2[,-c(2:10)]
+knitr::kable(head(data_knn_m2)[,c(1,13:16)]) %>%
+    kable_styling(position='left',full_width=F)
+
+```
+
 
 ### 3.2 Predictive Model
+Building the kNN model does not require many steps, as it is a very simple lazy learning algorithm.  
+Data was split into training and test as a first step, using a 70:30 split for Train:Test. The same split was used for both models 1 and 2
 
 ```{r warning=FALSE}
+set.seed(12)
+train <-sample(nrow(data_knn), 0.7*nrow(data_knn), replace = FALSE)
 
 ```
 
-### 3.3 Evaluation of model Performance
+The data was then split for model 1 and model 2 using the same split. The class labels for each were also stored
 
 ```{r warning=FALSE}
+#training and test sets
+train_knn_m1 <-data_knn_m1[train,-1]
+test_knn_m1 <-data_knn_m1[-train,-1]
+#training and test class labels
+train_knn_class_m1 <- data_knn_m1[train,1]
+test_knn_class_m1 <- data_knn_m1[-train,1]
+
+#training and test sets
+train_knn_m2 <-data_knn_m2[train,-1]
+test_knn_m2 <-data_knn_m2[-train,-1]
+#training and test class labels
+train_knn_class_m2 <- data_knn_m2[train,1]
+test_knn_class_m2 <- data_knn_m2[-train,1]
 
 ```
 
-
-## 4. kNN{.tabset}
-textexttext
-
-### 4.1 Data Preparation
+An initial run of each model was constructed using an arbitrary k=5 value
 
 ```{r warning=FALSE}
+knn_pred_m1 <- knn(train_knn_m1,test_knn_m1, cl=train_knn_class_m1, k=5)
+knn_pred_m2 <- knn(train_knn_m2,test_knn_m2, cl=train_knn_class_m2, k=5)
+summary(knn_pred_m1)
+summary(knn_pred_m2)
+```
+
+
+### 3.3 Evaluation of model Performance{.tabset}
+In order to optimise the models and compare performance, it was necessary to test different values of k. For each model, the kNN algorithm was run multiple times to create a picture of the solution space
+
+####Model 1
+The model was iterated for 50 values of k (from 1 to 50) and each model was stored in a list. Each confusion matrix result for accuracy and p-value were stored in a dataframe. A sample of this is shown below
+
+```{r warning=FALSE}
+m1_results = data.frame(k=c(0,0),Accuracy=c(0,0), Acc_pvalue = c(0,0))
+m1_models <- list()
+for (k in c(1:50)) {
+  knn_pred_m1 <- knn(train_knn_m1,test_knn_m1, cl=train_knn_class_m1, k=k)
+  cm_m1 <- confusionMatrix(knn_pred_m1, test_knn_class_m1)
+  m1_results[k,] = c(k,cm_m1$overall[1],cm_m1$overall[6])
+  m1_models[[k]] = knn_pred_m1
+}
+knitr::kable(m1_results[1:15,]) %>%
+    kable_styling(position='left',full_width=F)
 
 ```
 
-### 4.2 Predictive Model
+To try to assess the best performing value of k, the accuracy and also the p-value as provided by the Confusion Matrix function from the caret package were used. Graphically this can be seen below. 
 
 ```{r warning=FALSE}
+par(mar = c(5,5,2,5))
+plot(m1_results$k,m1_results$Accuracy, type="l", xlab="k", ylab="accuracy", col="blue",main ="kNN - model 1 - All Nominal")
+
+par(new = T)
+plot(m1_results$k,m1_results$Acc_pvalue, type="l", axes=F, xlab=NA, ylab=NA, col="red")
+axis(side = 4)
+mtext(side = 4, line = 3, 'p-value')
+legend("topright", legend = c("accuracy", "p-value"), col=c("blue","red"), cex=0.6, lty = 1)
+
 
 ```
 
-### 4.2 Evaluation of model Performance
+####Model 2
+Again this model with ordinal values normalise, was run for k 1 to 50. A sample of the results is provided
 
 ```{r warning=FALSE}
+m2_results = data.frame(k=c(0,0),Accuracy=c(0,0), Acc_pvalue = c(0,0))
+m2_models <- list()
+for (k in c(1:50)) {
+  knn_pred_m2 <- knn(train_knn_m2,test_knn_m2, cl=train_knn_class_m2, k=k)
+  cm_m2 <- confusionMatrix(knn_pred_m2, test_knn_class_m2)
+  m2_results[k,] = c(k,cm_m2$overall[1],cm_m2$overall[6])
+  m2_models[[k]] = knn_pred_m2
+}
+knitr::kable(m2_results[1:15,]) %>%
+    kable_styling(position='left',full_width=F)
 
 ```
 
-## 5. Regression
+The performance when allowing ordinal values appears to be better as can be seen below
+
+```{r warning=FALSE}
+par(mar = c(5,5,2,5))
+plot(m2_results$k,m2_results$Accuracy, type="l", xlab="k", ylab="accuracy", col="blue",main ="kNN - model 2 - Ordinal")
+
+par(new = T)
+plot(m2_results$k,m2_results$Acc_pvalue, type="l", axes=F, xlab=NA, ylab=NA, col="red")
+axis(side = 4)
+mtext(side = 4, line = 3, 'p-value')
+legend("topright", legend = c("accuracy", "p-value"), col=c("blue","red"), cex=0.6, lty = 1)
+
+
+```
+
+### 3.4 kNN Conclusion
+As can be seen from the model evaluation, model 2 where the ordinality of certain variables was included seemed to perform better than treating all nominally. M2 accuracy for the best k value was `r max(m2_results$Accuracy)` while the best for M1 was only `r max(m1_results$Accuracy)`.  
+Further the p values for the second model indicated a more statistically robust result, although it must be noted that neither reached standard significance thresholds. The p value for the best k of M2 was `r unique(m2_results[m2_results$Accuracy==max(m2_results$Accuracy),3])` while the corresponding value for M1 was `r unique(m1_results[m1_results$Accuracy==max(m1_results$Accuracy),3])`.  
+A final note to say that with non-recurrence of events being at 70% in the data, the predictive value of kNN for this task does not appear to be especially useful. This could be due to there not being a clear boundary between the classes or that the input data is not sufficient to allow for better prediction.
+
+## 4. Regression{.tabset}
 As mentioned previously, the concrete compressive strength in the dataset is the dependant variable, and we are trying to use the features to model this output variable. We will creat a model using all the features(as it is hypotheized that they are all important) and then use techniques such as stepwise selection to see what can be changed in the model to make it more effective. Finally, an anlyisis will be done on the summary of the final model to asses performance.
 
 ### 5.1 Data Preparation
@@ -227,9 +398,11 @@ par(mfrow=c(2,2))
 plot(concrete_model_CA)
 ```
 
-## 6. Discussion/Reflection
 
-The work was split up amongst the team where individually we would work on creating the models and then once complete, review the work done and merge the script changes in github. Finally we would work together to create the final markdown file.
+## Discussion/Reflection
+The work was split up amongst the team where individually we would work on creating the models and then once complete, review the work done and merge the script changes in github. Gavin Byrne carried out the decision tree analysis, Brendan Lynch the kNN analysis and Luke Feeney the regression analysis. Finally we worked together to create the final markdown file.
+
+For the kNN models, the dataset used was challenging in terms of being completely categorical and thus requiring a  lot of preprocessing. The decision whether to treat certain variables as nominal or ordinal appears to have allowed some improvement in model performance. However overall, the kNN method did not seem to be most suited for predictive accuracy and in a fuller analysis, comparison with other classifiers would have been carried out. 
 
 For the regression problem, the dataset was interesting in terms of some of the background research into concrete compressive strength. As the data required little to no cleaning, not much can be said about the state of the data other than that it was very easy to work with.
 Creating the model brought up some interesting results, namely that while cement would clearly be a large factor in creating concrete, that age plays a significant part in improving compressive strength. Adding in age and cement as an interaction feature, did not have as strong as an effect as it seemingly would have. It did improve the adjusted R squared value, but we were expecting that it would have had a better effect on the performance of the model.
